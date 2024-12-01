@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LZW Compression Visual Simulation</title>
+    <script src="LZW_comp.js"></script>
+    <style>
+        body {
+            color: white;
+            background-color: #222;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .code {
+            font-size: 14px;
+            color: white;
+            background-color: #333;
+            width: 80%;
+            height: 100px;
+            margin-bottom: 10px;
+            padding: 10px;
+            font-family: monospace;
+            border: none;
+            resize: none;
+        }
+        .button {
+            font-size: 16px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        .names {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: -10px;
+            margin-bottom: 20px;
+        }
+        .error-message {
+            color: tomato;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .highlight {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffcc00;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .visual-feedback {
+            font-size: 14px;
+            color: #00ff00;
+            background-color: #444;
+            width: 80%;
+            height: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            text-align: left;
+            overflow-y: auto;
+        }
+    </style>
+    <script>
+        function displayError(message) {
+            document.getElementById("error-message").innerText = message;
+        }
+
+        function calculateCompressionRate(original, compressed) {
+            const originalSize = original.length * 2; // Assuming UTF-16 encoding with 2 bytes per character.
+            const compressedSize = compressed.length * 4; // Assuming each number is a 32-bit integer.
+
+            if (compressedSize >= originalSize) {
+                return "Inefficient compression (compressed data is larger)";
+            } else {
+                const compressionRate = ((1 - (compressedSize / originalSize)) * 100).toFixed(2);
+                return `${compressionRate}%`;
+            }
+        }
+
+        function measureTime(fn) {
+            const startTime = performance.now();
+            fn();
+            const endTime = performance.now();
+            return (endTime - startTime).toFixed(2);
+        }
+
+        function displayDataSizes(original, compressed) {
+            const originalSize = original.length * 2; // bytes
+            const compressedSize = compressed.length * 4; // bytes
+            document.getElementById("size-info").innerText = `Original Size: ${originalSize} bytes, Compressed Size: ${compressedSize} bytes`;
+        }
+
+        function clickCompress() {
+            try {
+                let inputData = document.getElementById("input-data").value;
+                let compressed;
+                let timeTaken = measureTime(() => {
+                    compressed = lzwCompressWithVisualFeedback(inputData);
+                    document.getElementById("compressed-data").innerText = compressed.join(", ");
+                });
+                let compressionRate = calculateCompressionRate(inputData, compressed);
+                document.getElementById("compression-rate").innerText = `Compression Rate: ${compressionRate}`;
+                document.getElementById("compression-time").innerText = `Compression Time: ${timeTaken} ms`;
+                displayDataSizes(inputData, compressed);
+                displayError(""); // Clear any previous error
+            } catch (error) {
+                displayError("Compression Error: " + error.message);
+            }
+        }
+
+        function clickDecompress() {
+            try {
+                let compressed = document.getElementById("compressed-data").innerText.split(", ").map(Number);
+                let decompressed = lzwDecompress(compressed);
+                document.getElementById("output").innerText = decompressed;
+                displayError(""); // Clear any previous error
+            } catch (error) {
+                displayError("Decompression Error: " + error.message);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>LZW Compression with Visual Simulation</h1>
+    <p class="names">Jungmin Hwang, Jangwoo Jung, Hyungyo Seo, Minjoon Choi</p>
+    <p class="error-message" id="error-message"></p>
+    <textarea class="code" id="input-data" placeholder="Enter text here..."></textarea>
+    <button class="button" onclick="clickCompress()">Compress</button>
+    <button class="button" onclick="clickDecompress()">Decompress</button>
+    <p>Compressed Data:</p>
+    <pre id="compressed-data" class="code"></pre>
+    <p>Decompressed Output:</p>
+    <pre id="output" class="code"></pre>
+    <p id="compression-rate" class="highlight"></p>
+    <p id="compression-time" class="highlight"></p>
+    <p id="size-info" class="highlight"></p>
+    <div id="visual-feedback" class="visual-feedback"></div>
+</body>
+</html>
